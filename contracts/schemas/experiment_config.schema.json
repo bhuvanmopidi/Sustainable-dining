@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sustainable-dining.local/schemas/experiment_config.schema.json",
+  "title": "Experiment configuration (immutable once versioned)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "feature_schema_version", "semester", "reward", "learner",
+               "safety", "features", "layout", "reference", "evaluation"],
+  "$defs": {
+    "pos_int": { "type": "integer", "minimum": 1 },
+    "pos_num": { "type": "number", "exclusiveMinimum": 0 },
+    "fraction": { "type": "number", "minimum": 0, "maximum": 1 },
+    "seed_range": {
+      "type": "array", "items": { "type": "integer", "minimum": 0 },
+      "minItems": 2, "maxItems": 2
+    }
+  },
+  "properties": {
+    "version": { "type": "string", "minLength": 1 },
+    "feature_schema_version": { "const": "v1" },
+
+    "semester": {
+      "type": "object", "additionalProperties": false,
+      "required": ["weeks", "days_per_week", "meal_types", "baseline_weeks", "warmup_weeks", "enrolled_students"],
+      "properties": {
+        "weeks": { "$ref": "#/$defs/pos_int" },
+        "days_per_week": { "const": 7 },
+        "meal_types": {
+          "type": "array", "uniqueItems": true, "minItems": 3, "maxItems": 3,
+          "items": { "enum": ["BREAKFAST", "LUNCH", "DINNER"] }
+        },
+        "baseline_weeks": { "$ref": "#/$defs/pos_int" },
+        "warmup_weeks": { "type": "integer", "minimum": 0 },
+        "enrolled_students": { "$ref": "#/$defs/pos_int" }
+      }
+    },
+
+    "reward": {
+      "type": "object", "additionalProperties": false,
+      "required": ["lambda_w", "lambda_w_sensitivity", "clip", "mad_scale", "scale"],
+      "properties": {
+        "lambda_w": { "type": "number", "minimum": 0 },
+        "lambda_w_sensitivity": { "type": "array", "items": { "type": "number", "minimum": 0 }, "minItems": 1 },
+        "clip": { "$ref": "#/$defs/pos_num" },
+        "mad_scale": { "$ref": "#/$defs/pos_num" },
+        "scale": {
+          "description": "RELATIVE: changes as a fraction of the reference. BASELINE_RESIDUAL: in units of baseline prediction error.",
+          "enum": ["RELATIVE", "BASELINE_RESIDUAL"]
+        }
+      }
+    },
+
+    "learner": {
+      "type": "object", "additionalProperties": false,
+      "required": ["algorithm", "beta", "ridge_lambda", "tie_break"],
+      "properties": {
+        "algorithm": { "enum": ["LINUCB_SHARED", "UCB1", "RANDOM", "FIXED_P0", "FIXED_P2", "FIXED_P3"] },
+        "beta": { "type": "number", "minimum": 0 },
+        "ridge_lambda": { "$ref": "#/$defs/pos_num" },
+        "tie_break": { "const": "SEEDED_RANDOM" }
+      }
+    },
+
+    "safety": {
+      "type": "object", "additionalProperties": false,
+      "required": ["waste_spike_sigma", "waste_sustained_window", "waste_sustained_sigma",
+                   "uptake_immediate_drop", "uptake_sustained_drop", "uptake_sustained_required",
+                   "uptake_sustained_window", "cooldown_occurrences","waste_tolerance"],
+      "properties": {
+        "waste_spike_sigma": { "$ref": "#/$defs/pos_num" },
+        "waste_sustained_window": { "$ref": "#/$defs/pos_int" },
+        "waste_sustained_sigma": { "$ref": "#/$defs/pos_num" },
+        "uptake_immediate_drop": { "$ref": "#/$defs/fraction" },
+        "uptake_sustained_drop": { "$ref": "#/$defs/fraction" },
+        "uptake_sustained_required": { "$ref": "#/$defs/pos_int" },
+        "uptake_sustained_window": { "$ref": "#/$defs/pos_int" },
+        "cooldown_occurrences": { "$ref": "#/$defs/pos_int" },
+        "waste_tolerance": {
+          "description": "Minimum relative waste increase (0.10 = 10%) before a waste rule can fire",
+          "type": "number", "minimum": 0
+        }
+      }
+    },
+
+    "features": {
+      "type": "object", "additionalProperties": false,
+      "required": ["exposure_window_meals", "lowcarbon_threshold"],
+      "properties": {
+        "exposure_window_meals": { "$ref": "#/$defs/pos_int" },
+        "lowcarbon_threshold": { "const": "CATALOGUE_MEDIAN" }
+      }
+    },
+
+    "layout": {
+      "type": "object", "additionalProperties": false,
+      "required": ["eligible_slot_visibility_max", "eligible_slot_visibility_min", "policy_alphas"],
+      "properties": {
+        "eligible_slot_visibility_max": { "$ref": "#/$defs/fraction" },
+        "eligible_slot_visibility_min": { "$ref": "#/$defs/fraction" },
+        "policy_alphas": {
+          "type": "object", "additionalProperties": false,
+          "required": ["P0", "P1", "P2", "P3"],
+          "properties": {
+            "P0": { "const": 0.0 },
+            "P1": { "$ref": "#/$defs/fraction" },
+            "P2": { "$ref": "#/$defs/fraction" },
+            "P3": { "const": 1.0 }
+          }
+        }
+      }
+    },
+
+    "reference": {
+      "type": "object", "additionalProperties": false,
+      "required": ["min_baseline_appearances", "shrinkage_k"],
+      "properties": {
+        "min_baseline_appearances": { "$ref": "#/$defs/pos_int" },
+        "shrinkage_k": { "type": "number", "minimum": 0 }
+      }
+    },
+
+    "evaluation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["runs_per_scenario", "seeds"],
+      "properties": {
+        "runs_per_scenario": { "$ref": "#/$defs/pos_int" },
+        "seeds": {
+          "type": "object", "additionalProperties": false,
+          "required": ["tuning", "validation", "test"],
+          "properties": {
+            "tuning": { "$ref": "#/$defs/seed_range" },
+            "validation": { "$ref": "#/$defs/seed_range" },
+            "test": { "$ref": "#/$defs/seed_range" }
+          }
+        }
+      }
+    }
+  }
+}

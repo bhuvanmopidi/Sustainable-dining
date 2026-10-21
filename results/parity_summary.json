@@ -1,0 +1,28 @@
+[
+  {
+    "scenario": "SUCCESSFUL_NUDGING",
+    "seed": 100,
+    "same_layout": 336,
+    "meals": 336,
+    "numeric_mismatches": 0,
+    "reward_app": 0.08977443338774706,
+    "reward_harness": 0.08977443338774706,
+    "carbon_app": 1.0831485403867334,
+    "carbon_harness": 1.0831485403867334,
+    "rollbacks_app": 10,
+    "rollbacks_harness": 10
+  },
+  {
+    "scenario": "FAILED_SUBSTITUTION",
+    "seed": 100,
+    "same_layout": 336,
+    "meals": 336,
+    "numeric_mismatches": 0,
+    "reward_app": 0.02291934887800203,
+    "reward_harness": 0.02291934887800203,
+    "carbon_app": 1.1306074428689032,
+    "carbon_harness": 1.1306074428689032,
+    "rollbacks_app": 67,
+    "rollbacks_harness": 67
+  }
+]

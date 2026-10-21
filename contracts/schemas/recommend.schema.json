@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sustainable-dining.local/schemas/recommend.schema.json",
+  "title": "POST /recommend",
+  "$defs": {
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["config", "phase", "meal", "menu_items", "slots", "forecast",
+                   "learner_log", "exposure_history", "active_cooldowns", "warmup_cursor", "force_p0",
+                   "catalogue_median_carbon_score"],
+      "properties": {
+        "catalogue_median_carbon_score": {
+          "description": "Median carbon_score over the whole dish catalogue; items below it count as low-carbon for feature 8",
+          "$ref": "common.schema.json#/$defs/fraction"
+        },
+        "config": { "$ref": "experiment_config.schema.json" },
+        "phase": { "$ref": "common.schema.json#/$defs/phase" },
+        "meal": { "$ref": "common.schema.json#/$defs/meal" },
+        "menu_items": { "type": "array", "minItems": 1, "items": { "$ref": "common.schema.json#/$defs/menu_item" } },
+        "slots": { "type": "array", "minItems": 1, "items": { "$ref": "common.schema.json#/$defs/slot" } },
+        "forecast": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["menu_item_id", "predicted_per_100"],
+            "properties": {
+              "menu_item_id": { "$ref": "common.schema.json#/$defs/uuid" },
+              "predicted_per_100": { "$ref": "common.schema.json#/$defs/non_negative" }
+            }
+          }
+        },
+        "learner_log": {
+          "description": "Deployed meals with eval_status OK, in deployment order. The learner is rebuilt from this on every call.",
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["meal_id", "phi", "reward", "deployed_labels"],
+            "properties": {
+              "meal_id": { "$ref": "common.schema.json#/$defs/uuid" },
+              "phi": { "$ref": "common.schema.json#/$defs/phi" },
+              "reward": { "type": "number", "minimum": -3, "maximum": 3 },
+              "deployed_labels": { "type": "array", "minItems": 1, "uniqueItems": true,
+                                   "items": { "$ref": "common.schema.json#/$defs/policy_label" } }
+            }
+          }
+        },
+        "exposure_history": {
+          "description": "Realised D of the previous deployed meals, most recent last (at most exposure_window_meals)",
+          "type": "array", "items": { "type": "number" }
+        },
+        "active_cooldowns": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["policy_label", "meal_type"],
+            "properties": {
+              "policy_label": { "enum": ["P1", "P2", "P3"] },
+              "meal_type": { "$ref": "common.schema.json#/$defs/meal_type" }
+            }
+          }
+        },
+        "warmup_cursor": { "type": "integer", "minimum": 0 },
+        "force_p0": { "description": "True when a rollback fired on the previous meal of this type", "type": "boolean" }
+      }
+    },
+
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ordering", "ordering_hash", "generating_labels", "d", "m", "phi",
+                   "pred_mean", "bonus", "ucb_score", "excluded_by_cooldown"],
+      "properties": {
+        "ordering": { "$ref": "common.schema.json#/$defs/ordering" },
+        "ordering_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "generating_labels": { "type": "array", "minItems": 1, "uniqueItems": true,
+                               "items": { "$ref": "common.schema.json#/$defs/policy_label" } },
+        "d": { "type": "number" },
+        "m": { "type": "number", "minimum": 0 },
+        "phi": { "$ref": "common.schema.json#/$defs/phi" },
+        "pred_mean": { "type": ["number", "null"] },
+        "bonus": { "type": ["number", "null"], "minimum": 0 },
+        "ucb_score": { "type": ["number", "null"] },
+        "excluded_by_cooldown": { "type": "boolean" }
+      }
+    },
+
+    "response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidates", "chosen_hash", "source", "reason_code", "learner_log_length", "feature_schema_version"],
+      "properties": {
+        "candidates": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/candidate" } },
+        "chosen_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "source": { "$ref": "common.schema.json#/$defs/rec_source" },
+        "reason_code": { "$ref": "common.schema.json#/$defs/reason_code" },
+        "learner_log_length": { "type": "integer", "minimum": 0 },
+        "feature_schema_version": { "const": "v1" }
+      }
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "version": "v1",
+  "feature_schema_version": "v1",
+
+  "semester": {
+    "weeks": 16,
+    "days_per_week": 7,
+    "meal_types": ["BREAKFAST", "LUNCH", "DINNER"],
+    "baseline_weeks": 2,
+    "warmup_weeks": 1,
+    "enrolled_students": 1000
+  },
+
+  "reward": {
+    "lambda_w": 1.0,
+    "lambda_w_sensitivity": [0.5, 1.0, 2.0],
+    "clip": 3.0,
+    "mad_scale": 1.4826,
+    "scale": "RELATIVE"
+  },
+
+  "learner": {
+    "algorithm": "LINUCB_SHARED",
+    "beta": 0.1,
+    "ridge_lambda": 1.0,
+    "tie_break": "SEEDED_RANDOM"
+  },
+
+  "safety": {
+    "waste_spike_sigma": 3.0,
+    "waste_sustained_window": 3,
+    "waste_sustained_sigma": 2.0,
+    "uptake_immediate_drop": 0.20,
+    "uptake_sustained_drop": 0.10,
+    "uptake_sustained_required": 2,
+    "uptake_sustained_window": 3,
+    "cooldown_occurrences": 3,
+    "waste_tolerance": 0.10
+  },
+
+  "features": {
+    "exposure_window_meals": 9,
+    "lowcarbon_threshold": "CATALOGUE_MEDIAN"
+  },
+
+  "layout": {
+    "eligible_slot_visibility_max": 1.0,
+    "eligible_slot_visibility_min": 0.2,
+    "policy_alphas": { "P0": 0.0, "P1": 0.3333333333, "P2": 0.6666666667, "P3": 1.0 }
+  },
+
+  "reference": {
+    "min_baseline_appearances": 2,
+    "shrinkage_k": 2.0
+  },
+
+  "evaluation": {
+    "runs_per_scenario": 100,
+    "seeds": {
+      "tuning": [0, 29],
+      "validation": [30, 99],
+      "test": [100, 199]
+    }
+  }
+}

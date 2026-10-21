@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sustainable-dining.local/schemas/forecast.schema.json",
+  "title": "POST /forecast",
+  "$defs": {
+    "history_meal": {
+      "description": "A previously observed meal. Only meals strictly before the target meal may be sent.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "meal",
+        "menu_items",
+        "deployed_ordering",
+        "observation"
+      ],
+      "properties": {
+        "meal": {
+          "$ref": "common.schema.json#/$defs/meal"
+        },
+        "menu_items": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "common.schema.json#/$defs/menu_item"
+          }
+        },
+        "deployed_ordering": {
+          "$ref": "common.schema.json#/$defs/ordering"
+        },
+        "observation": {
+          "$ref": "common.schema.json#/$defs/observation"
+        }
+      }
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model",
+        "history",
+        "target_meal",
+        "target_menu_items"
+      ],
+      "properties": {
+        "model": {
+          "enum": [
+            "RANDOM_FOREST",
+            "SEASONAL_NAIVE"
+          ]
+        },
+        "history": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/history_meal"
+          }
+        },
+        "target_meal": {
+          "$ref": "common.schema.json#/$defs/meal"
+        },
+        "target_menu_items": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "common.schema.json#/$defs/menu_item"
+          }
+        },
+        "random_seed": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_version",
+        "placement_assumption",
+        "predictions"
+      ],
+      "properties": {
+        "model_version": {
+          "type": "string"
+        },
+        "placement_assumption": {
+          "const": "NEUTRAL"
+        },
+        "predictions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "menu_item_id",
+              "predicted_per_100"
+            ],
+            "properties": {
+              "menu_item_id": {
+                "$ref": "common.schema.json#/$defs/uuid"
+              },
+              "predicted_per_100": {
+                "$ref": "common.schema.json#/$defs/non_negative"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

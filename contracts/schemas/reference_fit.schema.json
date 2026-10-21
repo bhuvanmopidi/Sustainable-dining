@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sustainable-dining.local/schemas/reference_fit.schema.json",
+  "title": "POST /reference/fit",
+  "$defs": {
+    "baseline_meal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["meal", "menu_items", "observation"],
+      "properties": {
+        "meal": { "$ref": "common.schema.json#/$defs/meal" },
+        "menu_items": { "type": "array", "minItems": 1, "items": { "$ref": "common.schema.json#/$defs/menu_item" } },
+        "observation": { "$ref": "common.schema.json#/$defs/observation" }
+      }
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["config", "baseline_meals"],
+      "properties": {
+        "config": { "$ref": "experiment_config.schema.json" },
+        "baseline_meals": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/baseline_meal" } }
+      }
+    },
+    "response": {
+      "description": "Either a frozen reference model, or a rejection naming the dish x meal-type pairs with too few baseline appearances",
+      "oneOf": [
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["status", "reference_model"],
+          "properties": {
+            "status": { "const": "FITTED" },
+            "reference_model": { "$ref": "common.schema.json#/$defs/reference_model" }
+          }
+        },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["status", "missing_coverage"],
+          "properties": {
+            "status": { "const": "REJECTED_INSUFFICIENT_COVERAGE" },
+            "missing_coverage": {
+              "type": "array", "minItems": 1,
+              "items": {
+                "type": "object", "additionalProperties": false,
+                "required": ["dish_id", "meal_type", "appearances", "required"],
+                "properties": {
+                  "dish_id": { "$ref": "common.schema.json#/$defs/uuid" },
+                  "meal_type": { "$ref": "common.schema.json#/$defs/meal_type" },
+                  "appearances": { "type": "integer", "minimum": 0 },
+                  "required": { "type": "integer", "minimum": 1 }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

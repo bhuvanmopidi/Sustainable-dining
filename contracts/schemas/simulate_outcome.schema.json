@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sustainable-dining.local/schemas/simulate_outcome.schema.json",
+  "title": "POST /simulate/outcome (demo service only)",
+  "description": "The response is exactly an observation. No latent preferences, counterfactuals, dissatisfaction or oracle values may cross this boundary; additionalProperties:false enforces that.",
+  "$defs": {
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["seed", "scenario", "meal_index", "meal", "menu_items", "deployed_ordering"],
+      "properties": {
+        "seed": { "type": "integer", "minimum": 0 },
+        "scenario": {
+          "enum": ["NO_PLACEMENT_EFFECT", "SUCCESSFUL_NUDGING", "FAILED_SUBSTITUTION",
+                   "NUDGE_FATIGUE", "CHANGING_PREFERENCES", "CONTEXT_DEPENDENT", "AVOIDANCE_STRESS"]
+        },
+        "meal_index": { "description": "0-based position in the semester; keys the RNG", "type": "integer", "minimum": 0 },
+        "meal": { "$ref": "common.schema.json#/$defs/meal" },
+        "menu_items": { "type": "array", "minItems": 1, "items": { "$ref": "common.schema.json#/$defs/menu_item" } },
+        "deployed_ordering": { "$ref": "common.schema.json#/$defs/ordering" }
+      }
+    },
+    "response": { "$ref": "common.schema.json#/$defs/observation" }
+  }
+}

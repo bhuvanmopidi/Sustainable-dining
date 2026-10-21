@@ -1,0 +1,22 @@
+{
+  "version": "v1",
+  "dimension": 16,
+  "features": [
+    { "index": 0,  "name": "intercept",                 "block": "context", "definition": "Constant 1" },
+    { "index": 1,  "name": "is_lunch",                  "block": "context", "definition": "1 if meal_type = LUNCH else 0 (breakfast is the reference category)" },
+    { "index": 2,  "name": "is_dinner",                 "block": "context", "definition": "1 if meal_type = DINNER else 0" },
+    { "index": 3,  "name": "is_weekend",                "block": "context", "definition": "1 if Saturday or Sunday else 0" },
+    { "index": 4,  "name": "expected_attendance_ratio", "block": "context", "definition": "expected_attendance / enrolled_students (never actual attendance)" },
+    { "index": 5,  "name": "n_eligible_scaled",         "block": "context", "definition": "number of eligible menu items / number of eligible slots" },
+    { "index": 6,  "name": "mean_carbon_score",         "block": "context", "definition": "mean catalogue-normalised carbon score c_i over eligible items" },
+    { "index": 7,  "name": "carbon_spread",             "block": "context", "definition": "max c_i - min c_i over eligible items (0 if fewer than 2)" },
+    { "index": 8,  "name": "pred_lowcarbon_share",      "block": "context", "definition": "forecast share of eligible demand on items with c_i below the catalogue median, queried under neutral placement" },
+    { "index": 9,  "name": "recent_exposure",           "block": "context", "definition": "mean realised D over the previous 9 deployed meals, all meal types (0 if none)" },
+    { "index": 10, "name": "d",                         "block": "action",  "definition": "D = -sum_i (v_i^a - v_i^0) * c_i over eligible items" },
+    { "index": 11, "name": "d_squared",                 "block": "action",  "definition": "D^2" },
+    { "index": 12, "name": "m",                         "block": "action",  "definition": "M = 0.5 * sum_i |v_i^a - v_i^0| over eligible items" },
+    { "index": 13, "name": "d_x_lunch",                 "block": "action",  "definition": "D * is_lunch" },
+    { "index": 14, "name": "d_x_dinner",                "block": "action",  "definition": "D * is_dinner" },
+    { "index": 15, "name": "d_x_exposure",              "block": "action",  "definition": "D * recent_exposure" }
+  ]
+}

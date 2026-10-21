@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sustainable-dining.local/schemas/evaluate.schema.json",
+  "title": "POST /evaluate",
+  "$defs": {
+    "history_entry": {
+      "description": "A previous evaluated occurrence of the same meal type",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["meal_id", "log_waste", "eligible_uptake", "uptake_ref", "deployed_labels"],
+      "properties": {
+        "meal_id": { "$ref": "common.schema.json#/$defs/uuid" },
+        "log_waste": { "type": "number", "minimum": 0 },
+        "eligible_uptake": { "type": "number", "minimum": 0 },
+        "uptake_ref": { "type": ["number", "null"], "minimum": 0 },
+        "deployed_labels": { "type": "array", "minItems": 1, "uniqueItems": true,
+                             "items": { "$ref": "common.schema.json#/$defs/policy_label" } }
+      }
+    },
+
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["config", "meal", "menu_items", "deployed_candidate", "observation",
+                   "reference_model", "same_type_history"],
+      "properties": {
+        "config": { "$ref": "experiment_config.schema.json" },
+        "meal": { "$ref": "common.schema.json#/$defs/meal" },
+        "menu_items": { "type": "array", "minItems": 1, "items": { "$ref": "common.schema.json#/$defs/menu_item" } },
+        "deployed_candidate": {
+          "type": "object", "additionalProperties": false,
+          "required": ["ordering_hash", "generating_labels", "phi"],
+          "properties": {
+            "ordering_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+            "generating_labels": { "type": "array", "minItems": 1, "uniqueItems": true,
+                                   "items": { "$ref": "common.schema.json#/$defs/policy_label" } },
+            "phi": { "$ref": "common.schema.json#/$defs/phi" }
+          }
+        },
+        "observation": { "$ref": "common.schema.json#/$defs/observation" },
+        "reference_model": {
+          "description": "null only during BASELINE, when no reference exists yet",
+          "oneOf": [ { "$ref": "common.schema.json#/$defs/reference_model" }, { "type": "null" } ]
+        },
+        "same_type_history": {
+          "description": "Most recent last; at most window - 1 entries",
+          "type": "array", "maxItems": 2, "items": { "$ref": "#/$defs/history_entry" }
+        }
+      }
+    },
+
+    "safety_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rule", "observed_value", "threshold", "action", "cooldown_labels"],
+      "properties": {
+        "rule": { "$ref": "common.schema.json#/$defs/safety_rule" },
+        "observed_value": { "type": "number" },
+        "threshold": { "type": "number" },
+        "action": { "$ref": "common.schema.json#/$defs/safety_action" },
+        "cooldown_labels": {
+          "description": "Never contains P0",
+          "type": "array", "uniqueItems": true, "items": { "enum": ["P1", "P2", "P3"] }
+        }
+      }
+    },
+
+    "response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["eval_status", "metrics", "safety_events", "force_p0_next", "learner_update"],
+      "properties": {
+        "eval_status": { "$ref": "common.schema.json#/$defs/eval_status" },
+        "metrics": { "$ref": "common.schema.json#/$defs/metrics" },
+        "safety_events": { "type": "array", "items": { "$ref": "#/$defs/safety_event" } },
+        "force_p0_next": { "type": "boolean" },
+        "learner_update": {
+          "description": "Whether this meal enters the learner log (false unless eval_status is OK)",
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
